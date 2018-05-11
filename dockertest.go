@@ -135,6 +135,7 @@ type RunOptions struct {
 	WorkingDir   string
 	Auth         dc.AuthConfiguration
 	PortBindings map[dc.Port][]dc.PortBinding
+	NetworkMode  string
 }
 
 // BuildAndRunWithOptions builds and starts a docker container
@@ -211,6 +212,10 @@ func (d *Pool) RunWithOptions(opts *RunOptions) (*Resource, error) {
 		}
 	}
 
+	if opts.NetworkMode == "" {
+		opts.NetworkMode = "default"
+	}
+
 	c, err := d.Client.CreateContainer(dc.CreateContainerOptions{
 		Name: opts.Name,
 		Config: &dc.Config{
@@ -221,7 +226,7 @@ func (d *Pool) RunWithOptions(opts *RunOptions) (*Resource, error) {
 			Cmd:          cmd,
 			Mounts:       mounts,
 			ExposedPorts: exp,
-			WorkingDir: wd,
+			WorkingDir:   wd,
 		},
 		HostConfig: &dc.HostConfig{
 			PublishAllPorts: true,
@@ -229,6 +234,7 @@ func (d *Pool) RunWithOptions(opts *RunOptions) (*Resource, error) {
 			Links:           opts.Links,
 			PortBindings:    opts.PortBindings,
 			ExtraHosts:      opts.ExtraHosts,
+			NetworkMode:     opts.NetworkMode,
 		},
 	})
 	if err != nil {
